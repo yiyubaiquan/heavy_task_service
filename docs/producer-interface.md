@@ -136,7 +136,11 @@ print("ready=", result.ready())
 
 if result.ready():
     if result.successful():
-        print("result=", result.result)
+        payload = result.result
+        if payload.get("status") == "success":
+            print("structured_result=", payload["structured_result"])
+        else:
+            print("failed_result=", payload)
     else:
         print("error=", result.result)
 ```
@@ -145,12 +149,68 @@ if result.ready():
 
 ```json
 {
-  "command": ["mineru", "-p", "...", "-o", "...", "-b", "pipeline"],
-  "input_path": ".../storage/inputs/<task_id>/demo.pdf",
+  "result_contract_version": "mineru-pdf-result-v1",
+  "task_id": "<task_id>",
+  "status": "success",
+  "source_pdf_sha256": "原 PDF sha256",
   "output_dir": ".../storage/outputs/<task_id>",
-  "return_code": 0,
-  "stdout": "...",
-  "stderr": "..."
+  "structured_result": {
+    "pages": [
+      {
+        "page_no": 1,
+        "width": 595.0,
+        "height": 842.0,
+        "layout_blocks": [
+          {
+            "block_id": "p1-b0001",
+            "page_no": 1,
+            "type": "paragraph",
+            "bbox": [72.0, 120.0, 520.0, 160.0],
+            "bbox_coord_space": "pdf",
+            "confidence": 0.95,
+            "text": "1.0.1 ...",
+            "source": "mineru"
+          }
+        ],
+        "markdown": "...",
+        "crops": []
+      }
+    ],
+    "tables": [],
+    "formulas": [],
+    "figures": [],
+    "raw_files": {}
+  },
+  "artifact_package": null,
+  "mineru_outputs": {
+    "return_code": 0,
+    "stdout_tail": "...",
+    "stderr_tail": "..."
+  },
+  "warnings": [],
+  "quality_report": {
+    "page_count": 1,
+    "layout_block_count": 1,
+    "needs_human_review": false
+  }
+}
+```
+
+失败结果也会以普通 Celery result 返回，生产者应优先检查 `result.result["status"]`：
+
+```json
+{
+  "result_contract_version": "mineru-pdf-result-v1",
+  "task_id": "<task_id>",
+  "status": "failed",
+  "error_code": "MINERU_PARSE_FAILED",
+  "message": "MinerU parse failed, return_code=1",
+  "retryable": false,
+  "stderr_tail": "最后 2000 字符以内 stderr",
+  "diagnostics": {
+    "command": ["mineru", "-p", "...", "-o", "...", "-b", "pipeline"],
+    "return_code": 1
+  }
 }
 ```
 
