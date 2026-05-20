@@ -26,3 +26,8 @@ storage/outputs/*
 Thumbs.db
 .idea/
 .vscode/
+
+# Local MinerU/test artifacts
+.runs/
+.venv-conda-backup-*/
+tests/*.pdf

@@ -4,7 +4,9 @@ import hashlib
 import html
 import json
 import re
+import shutil
 import subprocess
+import sys
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
@@ -90,6 +92,30 @@ def _materialize_input_pdf(payload: MinerUPdfPayload, task_id: str | None = None
     return input_path
 
 
+def _resolve_mineru_command(command: str) -> str:
+    """Resolve MinerU from PATH or the active virtual environment."""
+
+    command_path = Path(command).expanduser()
+    if command_path.is_absolute() or command_path.parent != Path("."):
+        return str(command_path)
+
+    resolved = shutil.which(command)
+    if resolved:
+        return resolved
+
+    scripts_dir = "Scripts" if sys.platform.startswith("win") else "bin"
+    executable_name = (
+        command
+        if not sys.platform.startswith("win") or Path(command).suffix
+        else f"{command}.exe"
+    )
+    venv_command = Path(sys.prefix) / scripts_dir / executable_name
+    if venv_command.exists():
+        return str(venv_command)
+
+    return command
+
+
 def build_mineru_command(payload: MinerUPdfPayload, task_id: str | None = None) -> tuple[list[str], Path]:
     """Build the MinerU command while keeping queue code decoupled from CLI details."""
 
@@ -103,7 +129,7 @@ def build_mineru_command(payload: MinerUPdfPayload, task_id: str | None = None) 
     )
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    command = [settings.mineru_command, "-p", str(input_path), "-o", str(output_dir)]
+    command = [_resolve_mineru_command(settings.mineru_command), "-p", str(input_path), "-o", str(output_dir)]
     backend = payload.backend or settings.mineru_default_backend
     if backend:
         command.extend(["-b", backend])

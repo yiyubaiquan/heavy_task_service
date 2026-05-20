@@ -26,7 +26,8 @@ def test_build_mineru_command_uses_task_output_dir(tmp_path: Path) -> None:
         task_id="task-123",
     )
 
-    assert command[:4] == ["mineru", "-p", str(input_pdf.resolve()), "-o"]
+    assert Path(command[0]).name.lower() in {"mineru", "mineru.exe"}
+    assert command[1:4] == ["-p", str(input_pdf.resolve()), "-o"]
     assert output_dir == output_base.resolve()
     assert output_dir.exists()
     assert command[-2:] == ["-b", "pipeline"]
@@ -49,7 +50,8 @@ def test_build_mineru_command_materializes_inline_pdf(tmp_path: Path, monkeypatc
     )
 
     input_path = Path(command[2])
-    assert command[:2] == ["mineru", "-p"]
+    assert Path(command[0]).name.lower() in {"mineru", "mineru.exe"}
+    assert command[1] == "-p"
     assert input_path == (tmp_path / "storage" / "inputs" / "task-inline" / "redis-demo.pdf").resolve()
     assert input_path.read_bytes() == pdf_bytes
     assert output_dir == output_base.resolve()

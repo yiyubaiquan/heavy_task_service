@@ -1,5 +1,6 @@
 param(
-    [switch]$SkipSync
+    [switch]$SkipSync,
+    [switch]$InstallMineru
 )
 
 $ErrorActionPreference = "Stop"
@@ -110,7 +111,12 @@ if (-not (Test-Path $EnvFile) -and (Test-Path $EnvExample)) {
 Import-DotEnv
 
 if (-not $SkipSync) {
-    uv sync --locked
+    $syncArgs = @("sync", "--locked")
+    $installMineruFromEnv = (Get-DotEnvValue -Name "INSTALL_MINERU" -Default "0") -eq "1"
+    if ($InstallMineru -or $installMineruFromEnv) {
+        $syncArgs += @("--extra", "mineru")
+    }
+    & uv @syncArgs
 }
 
 $apiHost = Get-DotEnvValue -Name "API_HOST" -Default "0.0.0.0"

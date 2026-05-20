@@ -39,6 +39,9 @@ uv sync --locked
 # 启动 API + Celery Worker（后台隐藏窗口运行，首次会执行 uv sync --locked）
 .\scripts\start.ps1
 
+# 本机需要直接执行 MinerU 时，安装/保留 MinerU 可选依赖
+.\scripts\start.ps1 -InstallMineru
+
 # 如果已同步过依赖，可跳过同步
 .\scripts\start.ps1 -SkipSync
 
