@@ -1,7 +1,8 @@
+import base64
+
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from app.schemas.task import HealthResponse, TaskStatusResponse, TaskSubmitRequest, TaskSubmitResponse
-from app.services.file_service import save_upload
 from app.services.task_service import TaskQueueService
 from app.tasks.catalog import TASK_DEFINITIONS
 
@@ -37,10 +38,11 @@ async def submit_mineru_pdf(file: UploadFile = File(...)) -> TaskSubmitResponse:
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=400, detail="only .pdf files are accepted")
 
-    saved_path = await save_upload(file)
+    file_bytes = await file.read()
     return task_queue.submit(
         "mineru.pdf.parse",
         {
-            "input_path": str(saved_path),
+            "filename": file.filename,
+            "file_b64": base64.b64encode(file_bytes).decode("ascii"),
         },
     )

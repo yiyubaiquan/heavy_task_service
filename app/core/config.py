@@ -17,6 +17,13 @@ class Settings(BaseSettings):
     service_storage_dir: Path = Field(Path("storage"), alias="SERVICE_STORAGE_DIR")
     mineru_command: str = Field("mineru", alias="MINERU_COMMAND")
     mineru_default_backend: str | None = Field("pipeline", alias="MINERU_DEFAULT_BACKEND")
+    mineru_auto_tune: bool = Field(True, alias="MINERU_AUTO_TUNE")
+    mineru_memory_per_thread_mb: int = Field(1536, alias="MINERU_MEMORY_PER_THREAD_MB")
+    mineru_reserved_memory_mb: int | None = Field(None, alias="MINERU_RESERVED_MEMORY_MB")
+    mineru_pdf_render_threads: int | None = Field(None, alias="MINERU_PDF_RENDER_THREADS")
+    mineru_intra_op_num_threads: int | None = Field(None, alias="MINERU_INTRA_OP_NUM_THREADS")
+    mineru_inter_op_num_threads: int | None = Field(None, alias="MINERU_INTER_OP_NUM_THREADS")
+    mineru_processing_window_size: int | None = Field(None, alias="MINERU_PROCESSING_WINDOW_SIZE")
     celery_task_default_queue: str = Field("heavy_tasks", alias="CELERY_TASK_DEFAULT_QUEUE")
 
     @property

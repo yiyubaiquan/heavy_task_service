@@ -36,6 +36,26 @@ function Get-DotEnvValue {
     return $value
 }
 
+function Import-DotEnv {
+    if (-not (Test-Path $EnvFile)) {
+        return
+    }
+
+    foreach ($line in Get-Content $EnvFile) {
+        $trimmed = $line.Trim()
+        if ([string]::IsNullOrWhiteSpace($trimmed) -or $trimmed.StartsWith("#")) {
+            continue
+        }
+        if ($trimmed -notmatch "^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=(.*)$") {
+            continue
+        }
+
+        $name = $Matches[1]
+        $value = $Matches[2].Trim().Trim('"').Trim("'")
+        Set-Item -Path "Env:$name" -Value $value
+    }
+}
+
 function Test-PidFileRunning {
     param([Parameter(Mandatory = $true)][string]$PidFile)
 
@@ -87,6 +107,8 @@ if (-not (Test-Path $EnvFile) -and (Test-Path $EnvExample)) {
     Write-Host "Created .env from .env.example. Please verify REDIS_URL before production use."
 }
 
+Import-DotEnv
+
 if (-not $SkipSync) {
     uv sync --locked
 }
@@ -94,8 +116,9 @@ if (-not $SkipSync) {
 $apiHost = Get-DotEnvValue -Name "API_HOST" -Default "0.0.0.0"
 $apiPort = Get-DotEnvValue -Name "API_PORT" -Default "8010"
 $queue = Get-DotEnvValue -Name "CELERY_TASK_DEFAULT_QUEUE" -Default "heavy_tasks"
+$workerConcurrency = Get-DotEnvValue -Name "CELERY_WORKER_CONCURRENCY" -Default "1"
 
 Start-ManagedProcess -Name "api" -Arguments @("run", "uvicorn", "app.main:app", "--host", $apiHost, "--port", $apiPort)
-Start-ManagedProcess -Name "worker" -Arguments @("run", "celery", "-A", "app.workers.celery_app.celery_app", "worker", "-Q", $queue, "--loglevel=INFO", "--pool=solo")
+Start-ManagedProcess -Name "worker" -Arguments @("run", "celery", "-A", "app.workers.celery_app.celery_app", "worker", "-Q", $queue, "--loglevel=INFO", "--pool=solo", "--concurrency=$workerConcurrency")
 
 Write-Host "Heavy Task Service started. API: http://127.0.0.1:$apiPort"

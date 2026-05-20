@@ -79,9 +79,10 @@ Type=simple
 WorkingDirectory=$ROOT_DIR
 Environment=PYTHONUNBUFFERED=1
 Environment=CELERY_TASK_DEFAULT_QUEUE=heavy_tasks
+Environment=CELERY_WORKER_CONCURRENCY=1
 Environment=PATH=$CURRENT_PATH
 EnvironmentFile=-$ENV_FILE
-ExecStart=$UV_BIN run celery -A app.workers.celery_app.celery_app worker -Q \${CELERY_TASK_DEFAULT_QUEUE} --loglevel=INFO
+ExecStart=$UV_BIN run celery -A app.workers.celery_app.celery_app worker -Q \${CELERY_TASK_DEFAULT_QUEUE} --loglevel=INFO --concurrency=\${CELERY_WORKER_CONCURRENCY}
 Restart=always
 RestartSec=5
 KillSignal=SIGTERM
