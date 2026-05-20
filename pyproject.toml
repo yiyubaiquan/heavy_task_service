@@ -1,0 +1,41 @@
+[project]
+name = "heavy-task-service"
+version = "0.1.0"
+description = "Async Redis-backed service for heavy document processing tasks such as MinerU PDF parsing."
+requires-python = ">=3.11"
+dependencies = [
+    "celery[redis]>=5.4,<6",
+    "fastapi>=0.115,<1",
+    "pydantic>=2.7,<3",
+    "pydantic-settings>=2.3,<3",
+    "python-dotenv>=1.0,<2",
+    "python-multipart>=0.0.9,<1",
+    "uvicorn[standard]>=0.30,<1",
+]
+
+[project.optional-dependencies]
+mineru = [
+    "mineru>=3.0",
+]
+
+[dependency-groups]
+dev = [
+    "httpx>=0.28,<1",
+    "pytest>=8,<9",
+    "ruff>=0.8,<1",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+include = ["app*"]
+exclude = ["storage*"]
