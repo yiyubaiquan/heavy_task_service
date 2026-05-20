@@ -11,6 +11,8 @@ MINERU_PDF_RENDER_THREADS = "MINERU_PDF_RENDER_THREADS"
 MINERU_INTRA_OP_NUM_THREADS = "MINERU_INTRA_OP_NUM_THREADS"
 MINERU_INTER_OP_NUM_THREADS = "MINERU_INTER_OP_NUM_THREADS"
 MINERU_PROCESSING_WINDOW_SIZE = "MINERU_PROCESSING_WINDOW_SIZE"
+MINERU_MODEL_SOURCE = "MINERU_MODEL_SOURCE"
+DEFAULT_MINERU_MODEL_SOURCE = "modelscope"
 
 MINERU_TUNABLE_ENV_KEYS = (
     MINERU_PDF_RENDER_THREADS,
@@ -149,6 +151,7 @@ def build_mineru_subprocess_env(
 ) -> tuple[dict[str, str], MinerUTuningProfile]:
     settings = settings or get_settings()
     env = dict(os.environ if base_env is None else base_env)
+    env.setdefault(MINERU_MODEL_SOURCE, DEFAULT_MINERU_MODEL_SOURCE)
     tuning = calculate_mineru_tuning(settings)
     tuned_env = tuning.to_env()
 

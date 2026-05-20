@@ -67,6 +67,18 @@ def test_mineru_payload_requires_exactly_one_input_source() -> None:
         MinerUPdfPayload(input_path="demo.pdf", file_b64="AAAA")
 
 
+def test_mineru_subprocess_env_defaults_to_modelscope() -> None:
+    env, _profile = build_mineru_subprocess_env(base_env={})
+
+    assert env["MINERU_MODEL_SOURCE"] == "modelscope"
+
+
+def test_mineru_subprocess_env_preserves_explicit_model_source() -> None:
+    env, _profile = build_mineru_subprocess_env(base_env={"MINERU_MODEL_SOURCE": "huggingface"})
+
+    assert env["MINERU_MODEL_SOURCE"] == "huggingface"
+
+
 def test_mineru_auto_tuning_uses_current_cpu_and_memory(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(mineru_tuning, "get_cpu_count", lambda: 8)
     monkeypatch.setattr(mineru_tuning, "get_available_memory_mb", lambda: 16_384)
