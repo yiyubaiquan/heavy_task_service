@@ -25,6 +25,10 @@ class Settings(BaseSettings):
     mineru_inter_op_num_threads: int | None = Field(None, alias="MINERU_INTER_OP_NUM_THREADS")
     mineru_processing_window_size: int | None = Field(None, alias="MINERU_PROCESSING_WINDOW_SIZE")
     celery_task_default_queue: str = Field("heavy_tasks", alias="CELERY_TASK_DEFAULT_QUEUE")
+    celery_redis_socket_timeout: float = Field(3.0, alias="CELERY_REDIS_SOCKET_TIMEOUT")
+    celery_redis_socket_connect_timeout: float = Field(
+        3.0, alias="CELERY_REDIS_SOCKET_CONNECT_TIMEOUT"
+    )
 
     @property
     def input_dir(self) -> Path:

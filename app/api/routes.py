@@ -3,7 +3,7 @@ import base64
 from fastapi import APIRouter, File, HTTPException, UploadFile
 
 from app.schemas.task import HealthResponse, TaskStatusResponse, TaskSubmitRequest, TaskSubmitResponse
-from app.services.task_service import TaskQueueService
+from app.services.task_service import TaskQueueService, TaskQueueUnavailableError
 from app.tasks.catalog import TASK_DEFINITIONS
 
 router = APIRouter()
@@ -26,11 +26,16 @@ def submit_task(request: TaskSubmitRequest) -> TaskSubmitResponse:
         return task_queue.submit(request.task_type, request.payload)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except TaskQueueUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.get("/tasks/{task_id}", response_model=TaskStatusResponse)
 def get_task_status(task_id: str) -> TaskStatusResponse:
-    return task_queue.status(task_id)
+    try:
+        return task_queue.status(task_id)
+    except TaskQueueUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
 
 
 @router.post("/mineru/pdf", response_model=TaskSubmitResponse)
@@ -39,10 +44,13 @@ async def submit_mineru_pdf(file: UploadFile = File(...)) -> TaskSubmitResponse:
         raise HTTPException(status_code=400, detail="only .pdf files are accepted")
 
     file_bytes = await file.read()
-    return task_queue.submit(
-        "mineru.pdf.parse",
-        {
-            "filename": file.filename,
-            "file_b64": base64.b64encode(file_bytes).decode("ascii"),
-        },
-    )
+    try:
+        return task_queue.submit(
+            "mineru.pdf.parse",
+            {
+                "filename": file.filename,
+                "file_b64": base64.b64encode(file_bytes).decode("ascii"),
+            },
+        )
+    except TaskQueueUnavailableError as exc:
+        raise HTTPException(status_code=503, detail=str(exc)) from exc
